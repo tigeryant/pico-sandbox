@@ -8,12 +8,10 @@ use rp235x_hal as hal;
 use hal::fugit::RateExtU32;
 use hal::gpio::{FunctionI2C, Pin};
 
-// Change imports for SH1106 display
 use embedded_graphics::{
-    mono_font::{ascii::FONT_6X10, MonoTextStyleBuilder},
+    image::{Image, ImageRawLE},
     pixelcolor::BinaryColor,
     prelude::*,
-    text::{Baseline, Text},
 };
 use sh1106::{prelude::*, Builder};
 
@@ -67,16 +65,9 @@ fn main() -> ! {
     display.init().unwrap();
     display.flush().unwrap();
 
-    let text_style = MonoTextStyleBuilder::new()
-        .font(&FONT_6X10)
-        .text_color(BinaryColor::On)
-        .build();
+    let im: ImageRawLE<BinaryColor> = ImageRawLE::new(include_bytes!("../rust.raw"), 64);
 
-    Text::with_baseline("First line", Point::zero(), text_style, Baseline::Top)
-        .draw(&mut display)
-        .unwrap();
-
-    Text::with_baseline("Second line", Point::new(0, 16), text_style, Baseline::Top)
+    Image::new(&im, Point::new(32, 0))
         .draw(&mut display)
         .unwrap();
 
