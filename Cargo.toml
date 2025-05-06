@@ -42,8 +42,8 @@ usb-device = "0.3.2"
 usbd-serial = "0.2.2"
 static_cell = "2.1.0"
 embedded-hal-nb = "1.0.0"
-ssd1306 = "0.8.0"
-embedded-graphics = "0.8.0"
+embedded-graphics = "0.7.1"
+sh1106 = "0.4.0"
 
 [target.'cfg( target_arch = "arm" )'.dependencies]
 embassy-executor = {version = "0.5", features = ["arch-cortex-m", "executor-thread"]}
