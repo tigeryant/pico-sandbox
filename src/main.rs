@@ -4,6 +4,7 @@
 use panic_halt as _;
 
 use rp235x_hal as hal;
+// use hal::Clock;
 
 // use embedded_hal_0_2::blocking::i2c::Write;
 use hal::fugit::RateExtU32;
@@ -51,8 +52,10 @@ fn main() -> ! {
     );
 
     // Configure two pins as being I²C, not GPIO
-    let sda_pin: Pin<_, FunctionI2C, _> = pins.gpio18.reconfigure();
-    let scl_pin: Pin<_, FunctionI2C, _> = pins.gpio19.reconfigure();
+    // let sda_pin: Pin<_, FunctionI2C, _> = pins.gpio18.reconfigure();
+    // let scl_pin: Pin<_, FunctionI2C, _> = pins.gpio19.reconfigure();
+    let sda_pin: Pin<_, FunctionI2C, _> = pins.gpio2.reconfigure();
+    let scl_pin: Pin<_, FunctionI2C, _> = pins.gpio3.reconfigure();
 
     // Create the I²C drive, using the two pre-configured pins
     let i2c = hal::I2C::i2c1(
@@ -64,31 +67,34 @@ fn main() -> ! {
         &clocks.system_clock,
     );
 
-    // Create a new interface for the SSD1306
+    // Create a new interface for the SSD1306 with explicit address
+    // 1.3 inch OLED displays typically use address 0x3C
+    // let interface = I2CDisplayInterface::new_custom_address(i2c, 0x3C);
     let interface = I2CDisplayInterface::new(i2c);
 
-    // Create a display object. The SSD1306 defaults to a size of 128x64 pixels
+    // Create a display object for 1.3 inch OLED (128x64 pixels)
     let mut display = Ssd1306::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
         .into_buffered_graphics_mode();
 
     // Initialize the display
     display.init().unwrap();
-    
-    // Clear the display
-    display.clear(BinaryColor::Off).unwrap();
 
-    // Create a text style
+    // Clear the display with black color
+    // display.clear(BinaryColor::Off).unwrap();
+
     let text_style = MonoTextStyleBuilder::new()
         .font(&FONT_6X10)
         .text_color(BinaryColor::On)
         .build();
 
-    // Create a text at position (5, 15) and draw it using the previously defined style
-    Text::with_baseline("Hello World", Point::new(5, 15), text_style, Baseline::Top)
+    Text::with_baseline("Hello world!", Point::zero(), text_style, Baseline::Top)
         .draw(&mut display)
         .unwrap();
 
-    // Update the display to show the text
+    Text::with_baseline("Hello Rust!", Point::new(0, 16), text_style, Baseline::Top)
+        .draw(&mut display)
+        .unwrap();
+
     display.flush().unwrap();
 
     // Demo finish - just loop until reset
