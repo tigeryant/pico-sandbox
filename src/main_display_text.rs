@@ -17,11 +17,6 @@ use embedded_graphics::{
 };
 use sh1106::{prelude::*, Builder};
 
-use embedded_hal::delay::DelayNs;
-use embedded_hal_0_2::adc::OneShot;
-use core::fmt::Write;
-use heapless::String;
-
 /// Tell the Boot ROM about our application
 #[link_section = ".start_block"]
 #[used]
@@ -77,45 +72,18 @@ fn main() -> ! {
         .text_color(BinaryColor::On)
         .build();
 
-    // The delay object lets us wait for specified amounts of time
-    let mut delay = hal::Timer::new_timer0(pac.TIMER0, &mut pac.RESETS, &clocks);
+    Text::with_baseline("First line", Point::zero(), text_style, Baseline::Top)
+        .draw(&mut display)
+        .unwrap();
 
-    // Enable ADC
-    let mut adc = hal::Adc::new(pac.ADC, &mut pac.RESETS);
+    Text::with_baseline("Second line", Point::new(0, 16), text_style, Baseline::Top)
+        .draw(&mut display)
+        .unwrap();
 
-    // Configure GPIO26 as an ADC input
-    let mut adc_pin = hal::adc::AdcPin::new(pins.gpio27).unwrap();
+    display.flush().unwrap();
 
     loop {
-        // Read the ADC value
-        let pin_adc_counts: u16 = adc.read(&mut adc_pin).unwrap();
-        
-        // Convert ADC value to voltage (assuming 3.3V reference and 12-bit ADC)
-        let voltage = (pin_adc_counts as f32) * 3.3 / 4096.0;
-        
-        // Clear the display before writing new text
-        display.clear();
-        
-        // Convert ADC value and voltage to a string
-        let mut text: String<32> = String::new();
-        let mut voltage_text: String<32> = String::new();
-        
-        write!(text, "ADC: {}", pin_adc_counts).unwrap();
-        write!(voltage_text, "Voltage: {:.2}V", voltage).unwrap();
-        
-        // Display the ADC value and voltage
-        Text::with_baseline(&text, Point::new(0, 16), text_style, Baseline::Top)
-            .draw(&mut display)
-            .unwrap();
-            
-        Text::with_baseline(&voltage_text, Point::new(0, 32), text_style, Baseline::Top)
-            .draw(&mut display)
-            .unwrap();
-            
-        display.flush().unwrap();
-        
-        // Wait for a short time before taking the next reading
-        delay.delay_ms(100);
+        hal::arch::wfi();
     }
 }
 
